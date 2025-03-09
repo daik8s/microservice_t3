@@ -1,0 +1,8 @@
+POST http://localhost:9002/cart
+Content-Type: "application/json"
+
+{
+    "customerId": 1,
+    "productId": 1,
+    "qty": 1
+}
