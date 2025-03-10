@@ -7,22 +7,44 @@ import { CartRequestInput, CartRequestSchema } from "../dto/cartRequest.dto";
 const router = express.Router();
 const repo = repository.CartRepository;
 
-router.post("/cart", async (req: Request, res: Response, _: NextFunction) => {
-  try {
-    console.log(req.body);
-    const error = ValidateRequest<CartRequestInput>(req.body, CartRequestSchema);
-    
-    if(error) {
-        res.status(404).json({ error }); 
-        return
-    }
-
-    const response = await service.CreateCart(req.body as CartRequestInput, repo);
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(404).json({ error });
+const authMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const isValidUser = true;
+  if(!isValidUser) {
+    res.status(403).json({ error: "authorization error"})
   }
-});
+  next();
+};
+
+router.post(
+  "/cart",
+  authMiddleware,
+  async (req: Request, res: Response, _: NextFunction) => {
+    try {
+      console.log(req.body);
+      const error = ValidateRequest<CartRequestInput>(
+        req.body,
+        CartRequestSchema
+      );
+
+      if (error) {
+        res.status(404).json({ error });
+        return;
+      }
+
+      const response = await service.CreateCart(
+        req.body as CartRequestInput,
+        repo
+      );
+      res.status(200).json(response);
+    } catch (error) {
+      res.status(404).json({ error });
+    }
+  }
+);
 
 router.get("/cart", async (req: Request, res: Response, _: NextFunction) => {
   const response = await service.GetCart(req.body, repo);
