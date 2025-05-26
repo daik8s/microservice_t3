@@ -24,7 +24,6 @@ router.post(
   authMiddleware,
   async (req: Request, res: Response, _: NextFunction) => {
     try {
-      console.log(req.body);
       const error = ValidateRequest<CartRequestInput>(
         req.body,
         CartRequestSchema
@@ -47,17 +46,22 @@ router.post(
 );
 
 router.get("/cart", async (req: Request, res: Response, _: NextFunction) => {
-  const response = await service.GetCart(req.body, repo);
+  const response = await service.GetCart(req.body.customerId, repo);
   res.status(200).json(response);
 });
 
-router.patch("/cart", async (req: Request, res: Response, _: NextFunction) => {
-  const response = await service.EditCart(req.body, repo);
+router.patch("/cart/:lineItemId", async (req: Request, res: Response, _: NextFunction) => {
+  const lineItemId = req.params.lineItemId;
+  const response = await service.EditCart({
+    id: parseInt(lineItemId),
+    qty: req.body.qty,
+  }, repo);
   res.status(200).json(response);
 });
 
-router.delete("/cart", async (req: Request, res: Response, _: NextFunction) => {
-  const response = await service.DeleteCart(req.body, repo);
+router.delete("/cart/:lineItemId", async (req: Request, res: Response, _: NextFunction) => {
+  const lineItemId = req.params.lineItemId;
+  const response = await service.DeleteCart(parseInt(lineItemId), repo);
   res.status(200).json(response);
 });
 
