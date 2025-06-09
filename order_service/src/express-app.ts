@@ -3,19 +3,39 @@ import cors from "cors";
 import orderRoutes from "./routes/order.routes";
 import cartRoutes from "./routes/cart.routes";
 import { httpLogger, HandleErrorWithLogger } from "./utils";
+import { MessageBroker } from "./utils/broker";
+import { Consumer, Producer } from "kafkajs";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+export const ExpressApp = async () => {
 
-app.use(httpLogger);
+  const app = express();
+  app.use(cors());
+  app.use(express.json());
 
-app.use(cartRoutes)
-app.use(orderRoutes)
-app.use("/", (req: Request, res: Response, _: NextFunction) => {
-  res.status(200).json({ message: "I am healthy!" });
-});
+  app.use(httpLogger);
 
-app.use(HandleErrorWithLogger)
+  const producer = await MessageBroker.connectProducer<Producer>();
+  producer.on("producer.connect", () => {
+    console.log("producer connected");
+  })
 
-export default app;
+  const consumer = await MessageBroker.connectConsumer<Consumer>();
+  consumer.on("consumer.connect", () => {
+    console.log("consumer connected");
+  })
+
+  await MessageBroker.subscribe((message) => {
+    console.log("Consumer received the message", message);
+  }, "OrderEvents");
+
+  app.use(cartRoutes)
+  app.use(orderRoutes)
+  app.use("/", (req: Request, res: Response, _: NextFunction) => {
+    res.status(200).json({ message: "I am healthy!" });
+  });
+
+  app.use(HandleErrorWithLogger)
+
+  return app;
+}
+
