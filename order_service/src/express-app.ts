@@ -3,8 +3,7 @@ import cors from "cors";
 import orderRoutes from "./routes/order.routes";
 import cartRoutes from "./routes/cart.routes";
 import { httpLogger, HandleErrorWithLogger } from "./utils";
-import { MessageBroker } from "./utils/broker";
-import { Consumer, Producer } from "kafkajs";
+import { InitKafkaBroker } from "./service/broker.service";
 
 export const ExpressApp = async () => {
 
@@ -14,20 +13,8 @@ export const ExpressApp = async () => {
 
   app.use(httpLogger);
 
-  const producer = await MessageBroker.connectProducer<Producer>();
-  producer.on("producer.connect", () => {
-    console.log("producer connected");
-  })
-
-  const consumer = await MessageBroker.connectConsumer<Consumer>();
-  consumer.on("consumer.connect", () => {
-    console.log("consumer connected");
-  })
-
-  await MessageBroker.subscribe((message) => {
-    console.log("Consumer received the message", message);
-  }, "OrderEvents");
-
+  await InitKafkaBroker();
+  
   app.use(cartRoutes)
   app.use(orderRoutes)
   app.use("/", (req: Request, res: Response, _: NextFunction) => {
