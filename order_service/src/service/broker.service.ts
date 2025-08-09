@@ -7,14 +7,13 @@ import { OrderEvent } from "../types";
 export const InitKafkaBroker = async () => {
     const producer = await MessageBroker.connectProducer<Producer>();
     producer.on("producer.connect", () => {
-        console.log("producer connected");
+        console.log("Order Service: producer connected");
     })
     const consumer = await MessageBroker.connectConsumer<Consumer>();
     consumer.on("consumer.connect", () => {
-        console.log("consumer connected");
+        console.log("Order Service: consumer connected");
     })
     await MessageBroker.subscribe(HandleSubscription, "OrderEvents");
-
 }
 // keep listening to consumer events
 export const SendCreateOrderMessage = async (data: any) => {
