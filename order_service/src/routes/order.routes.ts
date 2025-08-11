@@ -26,6 +26,7 @@ router.post(
 
 router.get(
     "/orders",
+    RequestAuthorizer,
     async (req: Request, res: Response, next: NextFunction) => {
         const user = req.user;
         if (!user) {
@@ -39,6 +40,7 @@ router.get(
 
 router.get(
     "/orders/:id",
+    RequestAuthorizer,
     async (req: Request, res: Response, next: NextFunction) => {
         const user = req.user;
         if (!user) {
@@ -74,6 +76,15 @@ router.delete(
         }
         const orderId = parseInt(req.params.id);
         const response = await service.DeleteOrder(orderId, repo);
+        res.status(200).json(response);
+    }
+);
+
+router.get(
+    "/orders/:id/checkout",
+    async (req: Request, res: Response, next: NextFunction) => {
+        const orderId = parseInt(req.params.id);
+        const response = await service.CheckoutOrder(orderId, repo);
         res.status(200).json(response);
     }
 );

@@ -1,4 +1,4 @@
-import { OrderLineItemType, OrderWithLineItems } from "../dto/orderRequest.dto";
+import { InProcessOrder, OrderLineItemType, OrderWithLineItems } from "../dto/orderRequest.dto";
 import { CartRepositoryType } from "../repository/cart.repository";
 import { OrderRepositoryType } from "../repository/order.repository";
 import { MessageType } from "../types";
@@ -42,9 +42,9 @@ export const CreateOrder = async (
         orderItems: orderLineItems,
     };
 
-    // const order = await repo.createOrder(orderInput);
-    // await cartRepo.clearCartData(userId);
-    // console.log("Order created", order);
+    const order = await repo.createOrder(orderInput);
+    await cartRepo.clearCartData(userId);
+    console.log("Order created", order);
     // fire a message to subscription service [catalog service] to update stock
     await SendCreateOrderMessage(orderInput);
 
@@ -96,4 +96,23 @@ export const HandleSubscription = async (message: MessageType) => {
 
     // if (message.event === OrderEvent.ORDER_UPDATED) {
     // call create order
+};
+
+export const CheckoutOrder = async (orderId: number, repo: OrderRepositoryType) => {
+    const order = await repo.findOrder(orderId);
+    if(!order) {
+        throw new Error("Order not found");
+    }
+
+    const checkoutOrder: InProcessOrder = {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        customerId: order.customerId,
+        amount: Number(order.amount),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+    }
+
+    return checkoutOrder;
 };
